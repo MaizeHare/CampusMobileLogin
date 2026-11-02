@@ -6,7 +6,6 @@ namespace CampusMobileLogin;
 internal sealed class LoginForm : Form
 {
     private readonly string dataDirectory;
-    private readonly string? testOutput;
     private readonly WebView2 browser = new() { Dock = DockStyle.Fill };
     private readonly ComboBox address = new()
     {
@@ -27,9 +26,8 @@ internal sealed class LoginForm : Form
     private string IdentityLabel => identity.SelectedItem?.ToString() ?? "";
     private readonly Label status = new() { Dock = DockStyle.Fill, Text = "正在准备手机模式…", AutoSize = false, TextAlign = ContentAlignment.MiddleLeft };
 
-    public LoginForm(string? testOutput)
+    public LoginForm()
     {
-        this.testOutput = testOutput;
         using var iconStream = typeof(LoginForm).Assembly.GetManifestResourceStream("CampusMobileLogin.AppIcon")
             ?? throw new InvalidOperationException("缺少应用图标资源。");
         using var sourceIcon = new Icon(iconStream);
@@ -38,7 +36,7 @@ internal sealed class LoginForm : Form
         tray.Icon = applicationIcon;
         tray.Visible = true;
         dataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "CampusMobileLogin", testOutput == null ? "UserData" : "SelfTestData");
+            "CampusMobileLogin", "UserData");
         Text = "校园网身份登录";
         Font = new Font("Microsoft YaHei UI", 10);
         ClientSize = new Size(560, 900);
@@ -120,29 +118,17 @@ internal sealed class LoginForm : Form
             browser.CoreWebView2.NavigationStarting += (_, _) => status.Text = IdentityLabel + " · 正在打开页面…";
             browser.CoreWebView2.NavigationCompleted += (_, e) =>
             {
-                if (testOutput == null) address.Text = browser.Source?.AbsoluteUri ?? address.Text;
+                address.Text = browser.Source?.AbsoluteUri ?? address.Text;
                 status.Text = e.IsSuccess ? IdentityLabel + " · 请在上方页面登录" : "页面未打开：" + e.WebErrorStatus + "，请检查校园网连接和地址。";
             };
             refresh.Enabled = identity.Enabled = remember.Enabled = address.Enabled = true;
-            if (testOutput != null)
-            {
-                await SmokeTest.RunAsync(browser, testOutput, dataDirectory, CheckTrayCycle);
-                Close();
-                return;
-            }
             address.Text = settings.LoginUrl;
             Navigate(save: false);
         }
         catch (Exception ex)
         {
             status.Text = "启动失败：" + ex.Message;
-            if (testOutput != null)
-            {
-                File.WriteAllText(testOutput, System.Text.Json.JsonSerializer.Serialize(new { passed = false, error = ex.ToString() }));
-                Environment.ExitCode = 1;
-                Close();
-            }
-            else MessageBox.Show(this, "无法启动手机登录窗口。\n\n" + ex.Message, "校园网手机登录", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, "无法启动手机登录窗口。\n\n" + ex.Message, "校园网手机登录", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
@@ -154,14 +140,6 @@ internal sealed class LoginForm : Form
         Show();
         WindowState = restoredState;
         Activate();
-    }
-
-    private bool CheckTrayCycle()
-    {
-        WindowState = FormWindowState.Minimized;
-        bool hidden = !Visible && !ShowInTaskbar && tray.Visible;
-        RestoreFromTray();
-        return hidden && Visible && ShowInTaskbar && WindowState != FormWindowState.Minimized;
     }
 
     private async Task ChangeRememberAsync()

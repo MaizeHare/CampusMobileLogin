@@ -49,17 +49,7 @@ cd CampusMobileLogin
 dotnet publish -c Release -r win-x64 --self-contained false -o release
 ```
 
-本地端到端自检（只访问临时的回环 HTTP 服务）：
-
-```powershell
-.\release\CampusMobileLogin.exe --self-test "$PWD\smoke-test.json"
-```
-
-自检逐一切换 Android、iPhone、电脑，再切回 Android，验证首个页面脚本、HTTP 请求头与刷新后的身份，以及保存和重新读取身份选择。另用虚构账号验证 DPAPI 加密与解密、自动填入、已填账号、跨来源隔离、取消记忆后删除和停止捕获，并验证最小化到托盘和恢复。输出 JSON 与页面截图；不使用真实账号密码。
-
-`SmokeTest.cs` 和 `CredentialSmokeTest.cs` 是自检功能的源码，需要保留；生成的 `*-test.json` 和 `*-test.png` 是可删除的测试结果。
-
-Git 仓库只包含源码、项目配置、图标和授权文件。构建产物、分发压缩包、测试输出、浏览器数据和个人凭据均由 `.gitignore` 排除。
+Git 仓库只包含源码、项目配置、图标和授权文件。构建产物、分发压缩包、浏览器数据和个人凭据均由 `.gitignore` 排除。
 
 协议参考：https://chromedevtools.github.io/devtools-protocol/tot/Emulation/
 WebView2：https://learn.microsoft.com/microsoft-edge/webview2/
