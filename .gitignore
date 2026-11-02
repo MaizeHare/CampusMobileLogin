@@ -1,0 +1,29 @@
+# Generated builds and packages
+bin/
+obj/
+release/
+publish/
+*.zip
+*.pdb
+
+# Local editor files
+.vs/
+.idea/
+*.user
+*.suo
+
+# Test reports, screenshots, and icon previews
+*-test.json
+*-test.png
+assets/*-preview.png
+*.log
+
+# Local settings, browser profiles, and credentials
+UserData/
+SelfTestData/
+settings.json
+credentials.bin
+credentials.bin.tmp
+test-credentials.bin
+.env
+.env.*
